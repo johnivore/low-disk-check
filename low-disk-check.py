@@ -41,6 +41,7 @@ def main():
     data_config = configparser.ConfigParser()
     if data_filename.exists():
         data_config.read(data_filename)
+    data_filename = str(data_filename)  # for Python < 3.6
 
     partitions = psutil.disk_partitions()
     filesystems_toobig = []
