@@ -1,6 +1,10 @@
 #!/bin/env python
 
+import os
+from pathlib import Path
 import argparse
+import configparser
+import datetime
 import psutil
 
 
@@ -12,24 +16,57 @@ def sizeof_fmt(num, suffix='B'):
     return '%.1f %s%s' % (num, 'Yi', suffix)
 
 
-def filesystem_used_header():
-    return
+def get_xdg(name):
+    # returns a Path
+    xdg_fallback = {
+        'XDG_CONFIG_HOME': Path.home() / '.config',
+        'XDG_DATA_HOME': Path.home() / '.local' / 'share',
+    }
+    path = Path(os.environ[name]) if name in os.environ else xdg_fallback[name]
+    return path
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Print an alert if disk space is low')
-    parser.add_argument('--used', type=int, default=90, metavar='percent')
+    parser = argparse.ArgumentParser(description='Print alert if disk space is low',
+                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument('--used', type=int, default=90, metavar='percent',
+                        help='Print warning if used%% >= this')
+    parser.add_argument('--warn-days', type=int, default=7, metavar='days',
+                        help='Only warn if last warning was older than this many days')
     args = parser.parse_args()
+
+    # get config file location
+    # config_filename = get_xdg('XDG_CONFIG_HOME') / 'low-disk-check.conf'
+    data_filename = get_xdg('XDG_DATA_HOME') / 'low-disk-check.conf'
+    data_config = configparser.ConfigParser()
+    if data_filename.exists():
+        data_config.read(data_filename)
 
     partitions = psutil.disk_partitions()
     filesystems_toobig = []
     longest_path = 0
+    now = datetime.datetime.now()
     for part in partitions:
         path = part.mountpoint
         usage = psutil.disk_usage(path)
         if usage.percent >= args.used:
+            # check if we've warned recently
+            if data_config.has_option('mounts', path):
+                last_warned = datetime.datetime.fromtimestamp(int(data_config['mounts'][path]))
+                if now < last_warned + datetime.timedelta(days=args.warn_days):
+                    # don't warn for a while
+                    continue
+            # write the current time to data config
+            if not data_config.has_section('mounts'):
+                data_config.add_section('mounts')
+            data_config['mounts'][path] = str(int(now.timestamp()))
+            # for printing below
             filesystems_toobig.append((path, sizeof_fmt(usage.total), sizeof_fmt(usage.used), usage.percent))
+            # keep track of longest path name for formatting below
             if len(path) > longest_path: longest_path = len(path)
+
+    with open(data_filename, 'w') as cf:
+        data_config.write(cf)
 
     if not filesystems_toobig:
         return
