@@ -40,8 +40,7 @@ def main():
     data_filename = get_xdg('XDG_DATA_HOME') / 'low-disk-check.conf'
     data_config = configparser.ConfigParser()
     if data_filename.exists():
-        data_config.read(data_filename)
-    data_filename = str(data_filename)  # for Python < 3.6
+        data_config.read(str(data_filename))  # Python < 3.6 requires a str
 
     partitions = psutil.disk_partitions()
     filesystems_toobig = []
@@ -66,7 +65,7 @@ def main():
             # keep track of longest path name for formatting below
             if len(path) > longest_path: longest_path = len(path)
 
-    with open(data_filename, 'w') as cf:
+    with open(str(data_filename), 'w') as cf:  # Python < 3.6 requires a str
         data_config.write(cf)
 
     if not filesystems_toobig:
