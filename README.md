@@ -2,7 +2,7 @@
 
 ## About
 
-Simple script to check for low disk space.
+Prints an alert if low on disk space on any mounted partition.
 
 ## Requirements
 
