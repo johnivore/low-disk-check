@@ -65,6 +65,7 @@ def main():
             # keep track of longest path name for formatting below
             if len(path) > longest_path: longest_path = len(path)
 
+    data_filename.parent.mkdir(parents=True, exist_ok=True)
     with open(str(data_filename), 'w') as cf:  # Python < 3.6 requires a str
         data_config.write(cf)
 
