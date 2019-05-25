@@ -7,6 +7,9 @@ import configparser
 import datetime
 import psutil
 
+# psutil.disk_partitions() excludes stuff like /proc, but not /snap
+IGNORE_PATHS = ['/snap']
+
 
 def sizeof_fmt(num, suffix='B'):
     for unit in ['', 'Ki', 'Mi', 'Gi', 'Ti', 'Pi', 'Ei', 'Zi']:
@@ -48,6 +51,8 @@ def main():
     now = datetime.datetime.now()
     for part in partitions:
         path = part.mountpoint
+        if any([path.startswith(ignore) for ignore in IGNORE_PATHS]):
+            continue
         usage = psutil.disk_usage(path)
         if usage.percent >= args.used:
             # check if we've warned recently
