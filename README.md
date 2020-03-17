@@ -4,7 +4,18 @@
 
 Prints an alert if low on disk space on any mounted partition.
 
-For each mountpoint, it keeps track of when the last warning was issued, and won't warn again for a while.
+For each mountpoint, low-disk-check keeps track of when the last warning was issued, and won't warn again for a while.
+
+```
+usage: low-disk-check.py [-h] [--used percent] [--warn-days days]
+
+Print alert if disk space is low.
+
+optional arguments:
+  -h, --help        show this help message and exit
+  --used percent    Print warning if used% >= this (default: 90)
+  --warn-days days  Only warn if last warning was older than this many days (default: 7)
+```
 
 
 ## Requirements

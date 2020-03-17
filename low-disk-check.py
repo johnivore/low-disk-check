@@ -30,7 +30,17 @@ import psutil
 IGNORE_PATHS = ['/snap']
 
 
-def sizeof_fmt(num, suffix='B'):
+def sizeof_fmt(num: float, suffix: str = 'B') -> str:
+    """
+    Return a string representing a human-readable size.
+
+    Args:
+        num (float): The size
+        suffix (str): The suffix to append
+
+    Returns: A human-readable size (str)
+    """
+
     for unit in ['', 'Ki', 'Mi', 'Gi', 'Ti', 'Pi', 'Ei', 'Zi']:
         if abs(num) < 1024.0:
             return '%3.1f %s%s' % (num, unit, suffix)
@@ -38,8 +48,17 @@ def sizeof_fmt(num, suffix='B'):
     return '%.1f %s%s' % (num, 'Yi', suffix)
 
 
-def get_xdg(name):
-    # returns a Path
+def get_xdg(name: str) -> Path:
+    """
+    Get the Path to the user's data or config directory.
+    Use XDG_CONFIG_HOME/XDG_DATA_HOME if set in the user's
+    environment; else use the standard fallback locations.
+
+    Args:
+        name (str): either XDG_CONFIG_HOME or XDG_DATA_HOME
+
+    Returns: a Path
+    """
     xdg_fallback = {
         'XDG_CONFIG_HOME': Path.home() / '.config',
         'XDG_DATA_HOME': Path.home() / '.local' / 'share',
@@ -49,7 +68,7 @@ def get_xdg(name):
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Print alert if disk space is low',
+    parser = argparse.ArgumentParser(description='Print alert if disk space is low.',
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('--used', type=int, default=90, metavar='percent',
                         help='Print warning if used%% >= this')
@@ -85,9 +104,11 @@ def main():
                 data_config.add_section('mounts')
             data_config['mounts'][path] = str(int(now.timestamp()))
             # for printing below
-            filesystems_toobig.append((path, sizeof_fmt(usage.total), sizeof_fmt(usage.used), usage.percent))
+            filesystems_toobig.append((path, sizeof_fmt(usage.total), sizeof_fmt(usage.used),
+                                       usage.percent))
             # keep track of longest path name for formatting below
-            if len(path) > longest_path: longest_path = len(path)
+            if len(path) > longest_path:
+                longest_path = len(path)
 
     data_filename.parent.mkdir(parents=True, exist_ok=True)
     with open(str(data_filename), 'w') as cf:  # Python < 3.6 requires a str

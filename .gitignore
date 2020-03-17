@@ -1,2 +1,10 @@
-.vscode/
+.vscode
+*.egg-info
+*.pyc
+venv
+build
+dist
+.tox
+.idea
+.mypy_cache
 
